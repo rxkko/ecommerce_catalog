@@ -5,6 +5,9 @@ from sqlalchemy import pool
 from alembic import context
 from src.core.config import settings
 from src.models.base import Base
+from src.models.product import Product, ProductCategories
+from src.models.user import User
+from src.models.category import Category
 
 
 load_dotenv()
