@@ -5,8 +5,8 @@ from src.models.base import Base
 from typing import TYPE_CHECKING
 
 # Импорты для проверки типов, чтобы избежать циклических импортов во время выполнения
-if TYPE_CHECKING:
-    from src.models.category import Category
+# if TYPE_CHECKING:
+#     from src.models.category import Category
 
 class Product(Base):
     __tablename__ = "products"
@@ -29,3 +29,5 @@ class ProductCategories(Base):
 
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), primary_key=True)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), primary_key=True)
+
+from src.models.category import Category 

@@ -1,11 +1,8 @@
 from fastapi import FastAPI
-import uvicorn
+from src.api.routes import product, user
+
 
 app = FastAPI()
 
-@app.get("/")
-def hello():
-    return "Hello world"
-
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+app.include_router(product.router)
+app.include_router(user.router)

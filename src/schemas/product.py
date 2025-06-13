@@ -11,6 +11,10 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
 
 
+class ProductUpdate(ProductBase):
+    pass
+
+
 class ProductCreate(ProductBase):
     category_ids: List[int]  # Список id категорий, к которым относится товар
 

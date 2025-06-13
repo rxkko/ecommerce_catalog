@@ -8,3 +8,5 @@ services:
     volumes:
       - .:/code
     working_dir: /code
+    env_file:
+      - .env
