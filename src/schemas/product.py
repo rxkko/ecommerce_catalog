@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from src.schemas.category import CategoryRead
 
 class ProductBase(BaseModel):
+    """Базовая модель товара"""
     name: str
     description: str
     price: Decimal
@@ -11,12 +12,18 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
 
 
-class ProductUpdate(ProductBase):
-    pass
+class ProductUpdate(BaseModel):
+    """Модель для обновления товара"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[Decimal] = None
+    quantity: Optional[int] = None
+    image_url: Optional[str] = None
 
 
 class ProductCreate(ProductBase):
-    category_ids: List[int]  # Список id категорий, к которым относится товар
+    """Модель для создания товара"""
+    pass
 
 
 class ProductRead(ProductBase):
