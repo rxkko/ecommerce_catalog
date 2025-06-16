@@ -14,5 +14,4 @@ def get_product_service(
     return ProductService(product_repo)
 
 def get_user_by_role():
-    # Placeholder for user role dependency
     pass
