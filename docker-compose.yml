@@ -10,3 +10,19 @@ services:
     working_dir: /code
     env_file:
       - .env
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    
+volumes:
+  redis_data:

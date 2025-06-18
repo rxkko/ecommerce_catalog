@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.future import select
+from sqlalchemy import select, func
 from src.models.product import Product, ProductCategories
 from src.schemas.product import ProductBase, ProductUpdate
 from fastapi import Depends
@@ -12,11 +12,15 @@ class ProductRepository:
     def __init__(self, db: Annotated[AsyncSession, Depends(get_db)]):
         self.db = db
 
-    async def get_products(self) -> list[Product]:
+    async def get_products(self, limit: int = 10, offset: int = 0) -> tuple[list[Product], int]:
         """Получение всех продуктов. Возвращает пустой список при отсутствии данных."""
         try:
-            result = await self.db.execute(select(Product))
-            return result.scalars().all()
+            query = select(Product).offset(offset).limit(limit)
+            result = await self.db.execute(query)
+            products = result.scalars().all()
+            total_query = select(func.count()).select_from(Product)
+            total = (await self.db.execute(total_query)).scalar_one()
+            return products, total
         except SQLAlchemyError as e:
             raise ValueError(f"Ошибка базы данных при получении всех товаров: {str(e)}")
 

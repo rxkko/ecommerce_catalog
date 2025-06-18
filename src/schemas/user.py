@@ -10,6 +10,7 @@ class Token(BaseModel):
 class UserCreate(BaseModel):
     name: str
     username: str
+    password: str
     email: EmailStr
     is_active: bool = True
     is_admin: bool = False

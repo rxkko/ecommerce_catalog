@@ -19,16 +19,14 @@ class ProductService:
             )
         return product
     
-    async def get_all_products(self, page: int = 1, per_page: int = 10) -> dict:
+    async def get_all_products(self, limit: int = 10, offset: int = 0) -> dict:
         """Получение товаров с пагинацией"""
-        products = await self.product_repo.get_products()
-        start = (page - 1) * per_page
-        end = start + per_page
+        products, total = await self.product_repo.get_products(limit=limit, offset=offset)
         return {
-            "items": products[start:end],
-            "total": len(products),
-            "page": page,
-            "per_page": per_page
+        "items": products,
+        "total": total,
+        "page": (offset // limit) + 1,  # Автовычисление страницы
+        "per_page": limit
         }
         
     async def create_product(self, product_data: ProductBase) -> Product:
