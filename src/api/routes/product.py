@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi_cache.decorator import cache
 from src.services.product_service import ProductService
 from src.api.dependencies import get_product_service, get_user_by_role
 from src.schemas.product import ProductUpdate, ProductBase
@@ -7,6 +8,7 @@ from src.schemas.product import ProductUpdate, ProductBase
 router = APIRouter(tags=["catalog"])
 
 @router.get("/catalog")
+@cache(expire=600)
 async def get_all_products(
     limit: int = Query(10, ge=1),
     offset: int = Query(0, ge=0),
