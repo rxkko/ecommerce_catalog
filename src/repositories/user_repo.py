@@ -21,7 +21,7 @@ class UserRepository:
         return user.scalar_one_or_none()
     
     async def create_user(self, user_data: dict):
-        existing_user = await self.get_user_by_email(user_data["email"])  # Обращаемся как к словарю
+        existing_user = await self.get_user_by_email(user_data["email"])
         if existing_user:
             raise ValueError(f"Пользователь с почтой {user_data['email']} уже существует")
         user = User(**user_data)
