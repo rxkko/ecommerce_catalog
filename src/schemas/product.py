@@ -3,8 +3,8 @@ from typing import List, Optional
 from pydantic import BaseModel
 from src.schemas.category import CategoryRead
 
+
 class ProductBase(BaseModel):
-    """Базовая модель товара"""
     name: str
     description: str
     price: Decimal
@@ -13,7 +13,6 @@ class ProductBase(BaseModel):
 
 
 class ProductUpdate(BaseModel):
-    """Модель для обновления товара"""
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[Decimal] = None
@@ -22,7 +21,6 @@ class ProductUpdate(BaseModel):
 
 
 class ProductCreate(ProductBase):
-    """Модель для создания товара"""
     pass
 
 

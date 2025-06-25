@@ -2,11 +2,7 @@ from sqlalchemy import Integer, String, ForeignKey, Numeric, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from decimal import Decimal
 from src.models.base import Base
-from typing import TYPE_CHECKING
 
-# Импорты для проверки типов, чтобы избежать циклических импортов во время выполнения
-# if TYPE_CHECKING:
-#     from src.models.category import Category
 
 class Product(Base):
     __tablename__ = "products"

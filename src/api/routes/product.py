@@ -1,40 +1,34 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from fastapi_cache.decorator import cache
+from typing import Annotated
 from src.services.product_service import ProductService
-from src.api.dependencies import get_product_service, get_user_by_role
+from src.api.dependencies import get_product_service
 from src.schemas.product import ProductUpdate, ProductBase
 
 
 router = APIRouter(tags=["catalog"])
+ProductServiceDep = Annotated[ProductService, Depends(get_product_service)]
 
 @router.get("/catalog")
-@cache(expire=600)
+# @cache(expire=600)
 async def get_all_products(
+    product_service: ProductServiceDep,
     limit: int = Query(10, ge=1),
-    offset: int = Query(0, ge=0),
-    product_service: ProductService = Depends(get_product_service)):
+    offset: int = Query(0, ge=0)):
     return await product_service.get_all_products(limit=limit, offset=offset)
 
 @router.get("/catalog/{product_id}")
-async def get_product_by_id(product_id: int, product_service: ProductService = Depends(get_product_service)):
+async def get_product_by_id(product_id: int, product_service: ProductServiceDep):
     return await product_service.get_product_by_id(product_id)
 
 @router.post("/catalog/create")
-async def create_product(product_data: ProductBase, product_service: ProductService = Depends(get_product_service)):
+async def create_product(product_data: ProductBase, product_service: ProductServiceDep):
     return await product_service.create_product(product_data)
 
 @router.put("/catalog/update/{product_id}")
-async def update_product(product_id: int, product_data: ProductUpdate, product_service: ProductService = Depends(get_product_service)):
+async def update_product(product_id: int, product_data: ProductUpdate, product_service: ProductServiceDep):
     return await product_service.update_product(product_id, product_data)
 
 @router.delete("/catalog/delete/{product_id}")
-async def delete_product(product_id: int,
-                          product_service: ProductService = Depends(get_product_service),
-                          user: bool = Depends(get_user_by_role)):
-    if user.is_admin:
-        return await product_service.delete_product(product_id)
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет прав для удаления этого продукта."
-        )
+async def delete_product(product_id: int, product_service: ProductServiceDep):
+    return await product_service.delete_product(product_id)

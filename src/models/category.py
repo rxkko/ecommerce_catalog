@@ -3,7 +3,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base
 from typing import TYPE_CHECKING
 
-# Импорты для проверки типов, чтобы избежать циклических импортов во время выполнения
 if TYPE_CHECKING:
     from src.models.product import Product
 
