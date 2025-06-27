@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from src.models.product import Product, ProductCategories
+from src.models.product import Product
 from src.schemas.product import ProductBase, ProductUpdate
 from fastapi import Depends
 from src.core.database import get_db
@@ -56,10 +56,10 @@ class ProductRepository:
         await self.db.commit()
         return {"message": f"Товар '{product.name}' успешно удален"}
 
-    async def get_products_by_category(self, category_id: int) -> list[Product]:
-        result = await self.db.execute(
-            select(Product)
-            .join(ProductCategories, Product.id == ProductCategories.product_id)
-            .where(ProductCategories.category_id == category_id)
-        )
-        return result.scalars().all()
+    # async def get_products_by_category(self, category_id: int) -> list[Product]:
+    #     result = await self.db.execute(
+    #         select(Product)
+    #         .join(ProductCategories, Product.id == ProductCategories.product_id)
+    #         .where(ProductCategories.category_id == category_id)
+    #     )
+    #     return result.scalars().all()

@@ -13,17 +13,4 @@ class Product(Base):
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     quantity: Mapped[int] = mapped_column(Integer)
     image_url: Mapped[str] = mapped_column(String)
-
-    categories: Mapped[list["Category"]] = relationship(
-        "Category",
-        secondary="product_categories",
-        back_populates="products",
-    )
-
-class ProductCategories(Base):
-    __tablename__ = "product_categories"
-
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), primary_key=True)
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), primary_key=True)
-
-from src.models.category import Category 
+    product_category: Mapped[str] = mapped_column(String)

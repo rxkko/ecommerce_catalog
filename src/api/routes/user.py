@@ -25,10 +25,6 @@ async def logout_user(response: Response):
     response.delete_cookie("refresh_token")
     return {"message": "Успешный выход"}
 
-# @router.get("/me")
-# async def read_users_me(current_user: User = Depends(get_current_user)):
-#     return current_user
-
 @router.post("/register")
 async def register_user(user_data: UserCreate, user_service: UserServiceDep):
     return await user_service.create_user(user_data)

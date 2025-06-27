@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, Cookie, Response, HTTPException, status
 from src.services.token_service import TokenService
 from src.repositories.user_repo import UserRepository
 from src.api.dependencies import get_token_service, get_user_repository
+from src.schemas.product import ProductCategory
 
-router = APIRouter(prefix=["token"], tags=["token"])
+router = APIRouter(tags=["token"])
 
 @router.post("/refresh")
 async def refresh_token(
