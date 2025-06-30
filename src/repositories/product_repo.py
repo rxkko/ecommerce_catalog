@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from src.models.product import Product
-from src.schemas.product import ProductBase, ProductUpdate
+from src.schemas.product import ProductBase, ProductUpdate, ProductCreate
 from fastapi import Depends
 from src.core.database import get_db
 from typing import Annotated, Optional
@@ -32,7 +32,8 @@ class ProductRepository:
             description=product_data.description,
             price=product_data.price,
             quantity=product_data.quantity,
-            image_url=product_data.image_url or None
+            image_url=product_data.image_url or None,
+            product_category=product_data.product_category
         )
         
         self.db.add(new_product)
@@ -55,11 +56,3 @@ class ProductRepository:
         await self.db.delete(product)
         await self.db.commit()
         return {"message": f"Товар '{product.name}' успешно удален"}
-
-    # async def get_products_by_category(self, category_id: int) -> list[Product]:
-    #     result = await self.db.execute(
-    #         select(Product)
-    #         .join(ProductCategories, Product.id == ProductCategories.product_id)
-    #         .where(ProductCategories.category_id == category_id)
-    #     )
-    #     return result.scalars().all()

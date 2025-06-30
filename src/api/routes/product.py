@@ -19,11 +19,11 @@ async def get_all_products(
     limit: int = Query(10, ge=1),
     offset: int = Query(0, ge=0)):
     products = await product_service.get_all_products(limit=limit, offset=offset)
-    print(products.items)
-    return templates.TemplateResponse(
-        "catalog.html",
-        {"request": request, "products": products}
-    )
+    return products
+    # return templates.TemplateResponse(
+    #     "catalog.html",
+    #     {"request": request, "products": products}
+    # )
 
 @router.get("/catalog/{product_id}")
 async def get_product_by_id(product_id: int, product_service: ProductServiceDep):

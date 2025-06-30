@@ -1,8 +1,7 @@
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
-from src.schemas.category import CategoryRead
 
 
 class ProductCategory(str, Enum):
@@ -35,8 +34,7 @@ class ProductCreate(ProductBase):
 
 
 class ProductRead(ProductBase):
-    id: int
-    categories: List[CategoryRead] = []
+    pass
 
     class Config:
-        orm_mode = True
+        from_attributes=True
