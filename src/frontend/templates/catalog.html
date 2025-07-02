@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог товаров</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .user-controls a {
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+        
+        .user-controls a:hover {
+            color: #e74c3c;
+        }
+        
+        .user-icon {
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .cart-count {
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .filters {
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+        
+        .filter-section h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .filter-option {
+            margin-bottom: 8px;
+        }
+        
+        .filter-option label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .price-range {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .price-range input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .apply-filters {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .apply-filters:hover {
+            background: #1a252f;
+        }
+        
+        .container {
+            flex: 1;
+            max-width: 1200px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+        
+        .product-info {
+            padding: 15px;
+        }
+        
+        .product-name {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .product-category {
+            display: inline-block;
+            background: #e0e0e0;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: white;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .modal-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #eee;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .modal-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        
+        .modal-description {
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .modal-quantity {
+            font-size: 14px;
+            color: #777;
+        }
+        
+        .auth-modal {
+            max-width: 400px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #777;
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .auth-btn:hover {
+            background: #1a252f;
+        }
+        
+        .auth-switch {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+        
+        .auth-switch a {
+            color: #2c3e50;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Каталог товаров</h1>
+        <div class="user-controls">
+            <div class="user-icon" id="userIcon">
+                <i class="fas fa-user"></i>
+            </div>
+            <a href="/cart">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Корзина</span>
+                <span class="cart-count">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="filters">
+            <div class="filter-section">
+                <h3>Категории</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="category-phones" checked>
+                    <label for="category-phones">Телефоны</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="category-laptops" checked>
+                    <label for="category-laptops">Ноутбуки</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="category-tablets" checked>
+                    <label for="category-tablets">Планшеты</label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3>Цена</h3>
+                <div class="price-range">
+                    <input type="number" placeholder="От" id="price-min" min="0">
+                    <input type="number" placeholder="До" id="price-max" min="0">
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3>Наличие</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="in-stock" checked>
+                    <label for="in-stock">Только в наличии</label>
+                </div>
+            </div>
+            
+            <button class="apply-filters">Применить фильтры</button>
+        </div>
+        
+        <div class="container">
+            <div class="products-grid" id="productsContainer"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="productModal">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <img class="modal-image" id="modalImage" src="" alt="">
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-price" id="modalPrice"></div>
+        <p class="modal-description" id="modalDescription"></p>
+        <div class="product-category" id="modalCategory"></div>
+        <p class="modal-quantity" id="modalQuantity"></p>
+    </div>
+
+    <div class="modal-overlay" id="authModalOverlay"></div>
+    <div class="modal auth-modal" id="authModal">
+        <span class="close-btn" id="closeAuthModal">&times;</span>
+        
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="loginTab">Вход</div>
+            <div class="auth-tab" id="registerTab">Регистрация</div>
+        </div>
+        
+        <form id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="Введите ваш email" required>
+                <div class="error-message" id="loginEmailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Пароль</label>
+                <input type="password" id="loginPassword" placeholder="Введите пароль" required>
+                <div class="error-message" id="loginPasswordError"></div>
+            </div>
+            <button type="submit" class="auth-btn" id="loginBtn">Войти</button>
+            <div class="auth-switch">
+                Нет аккаунта? <a id="switchToRegister">Зарегистрироваться</a>
+            </div>
+        </form>
+        
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="registerName">Имя</label>
+                <input type="text" id="registerName" placeholder="Введите ваше имя" required>
+                <div class="error-message" id="registerNameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="registerUsername">Имя пользователя</label>
+                <input type="text" id="registerUsername" placeholder="Придумайте логин" required>
+                <div class="error-message" id="registerUsernameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" placeholder="Введите ваш email" required>
+                <div class="error-message" id="registerEmailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Пароль</label>
+                <input type="password" id="registerPassword" placeholder="Придумайте пароль" required>
+                <div class="error-message" id="registerPasswordError"></div>
+            </div>
+            <div class="form-group">
+                <label for="registerConfirmPassword">Подтвердите пароль</label>
+                <input type="password" id="registerConfirmPassword" placeholder="Повторите пароль" required>
+                <div class="error-message" id="registerConfirmPasswordError"></div>
+            </div>
+            <button type="submit" class="auth-btn" id="registerBtn">Зарегистрироваться</button>
+            <div class="auth-switch">
+                Уже есть аккаунт? <a id="switchToLogin">Войти</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/catalog');
+                if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const data = await response.json();
+                const products = data.items || [];
+                if (products.length === 0) {
+                    document.getElementById('productsContainer').innerHTML = '<div class="empty-message">Товары не найдены</div>';
+                    return;
+                }
+                renderProducts(products);
+                updateCartCount();
+            } catch (error) {
+                document.getElementById('productsContainer').innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img class="product-image" src="${product.image_url || 'https://via.placeholder.com/300'}" alt="${product.name}">
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <div class="product-price">${product.price} ₽</div>
+                        <span class="product-category">${product.product_category}</span>
+                    </div>
+                `;
+                productCard.addEventListener('click', () => openModal(product));
+                container.appendChild(productCard);
+            });
+        }
+
+        function updateCartCount() {
+            const cartCount = Math.floor(Math.random() * 10);
+            document.querySelector('.cart-count').textContent = cartCount;
+        }
+
+        function openModal(product) {
+            document.getElementById('modalImage').src = product.image_url || 'https://via.placeholder.com/600';
+            document.getElementById('modalTitle').textContent = product.name;
+            document.getElementById('modalPrice').textContent = `${product.price} ₽`;
+            document.getElementById('modalDescription').textContent = product.description;
+            document.getElementById('modalCategory').textContent = product.product_category;
+            document.getElementById('modalQuantity').textContent = `В наличии: ${product.quantity} шт.`;
+            
+            const overlay = document.getElementById('modalOverlay');
+            const modal = document.getElementById('productModal');
+            
+            overlay.classList.add('active');
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+        
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modal = document.getElementById('productModal');
+            
+            modal.classList.remove('active');
+            setTimeout(() => overlay.classList.remove('active'), 300);
+        }
+        
+        function openAuthModal() {
+            const overlay = document.getElementById('authModalOverlay');
+            const modal = document.getElementById('authModal');
+            
+            overlay.classList.add('active');
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+        
+        function closeAuthModal() {
+            const overlay = document.getElementById('authModalOverlay');
+            const modal = document.getElementById('authModal');
+            
+            modal.classList.remove('active');
+            setTimeout(() => overlay.classList.remove('active'), 300);
+        }
+        
+        function switchAuthTab(tabName) {
+            if (tabName === 'login') {
+                document.getElementById('loginTab').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+                document.getElementById('registerTab').classList.remove('active');
+                document.getElementById('registerForm').classList.remove('active');
+            } else {
+                document.getElementById('registerTab').classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+                document.getElementById('loginTab').classList.remove('active');
+                document.getElementById('loginForm').classList.remove('active');
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Вход выполнен успешно!');
+                    closeAuthModal();
+                    updateUserStatus(true);
+                } else {
+                    alert(result.message || 'Ошибка при входе');
+                }
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('Пароли не совпадают');
+                return;
+            }
+            
+            const userData = {
+                name,
+                username,
+                email,
+                password,
+                is_active: true,
+                is_admin: false
+            };
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Регистрация прошла успешно! Вы можете войти.');
+                    switchAuthTab('login');
+                } else {
+                    alert(result.message || 'Ошибка при регистрации');
+                }
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function updateUserStatus(isLoggedIn) {
+            const userIcon = document.querySelector('.user-icon i');
+            if (isLoggedIn) {
+                userIcon.classList.remove('fa-user');
+                userIcon.classList.add('fa-user-check');
+            } else {
+                userIcon.classList.remove('fa-user-check');
+                userIcon.classList.add('fa-user');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('modalOverlay').addEventListener('click', closeModal);
+            
+            document.getElementById('userIcon').addEventListener('click', openAuthModal);
+            document.getElementById('closeAuthModal').addEventListener('click', closeAuthModal);
+            document.getElementById('authModalOverlay').addEventListener('click', closeAuthModal);
+            
+            document.getElementById('switchToRegister').addEventListener('click', () => switchAuthTab('register'));
+            document.getElementById('switchToLogin').addEventListener('click', () => switchAuthTab('login'));
+            document.getElementById('registerTab').addEventListener('click', () => switchAuthTab('register'));
+            document.getElementById('loginTab').addEventListener('click', () => switchAuthTab('login'));
+            
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            
+            document.querySelector('.apply-filters').addEventListener('click', function() {
+                const selectedCategories = [];
+                if (document.getElementById('category-phones').checked) selectedCategories.push('phones');
+                if (document.getElementById('category-laptops').checked) selectedCategories.push('laptops');
+                if (document.getElementById('category-tablets').checked) selectedCategories.push('tablets');
+                
+                const minPrice = document.getElementById('price-min').value;
+                const maxPrice = document.getElementById('price-max').value;
+                const inStockOnly = document.getElementById('in-stock').checked;
+                
+                console.log('Применены фильтры:', {
+                    categories: selectedCategories,
+                    minPrice,
+                    maxPrice,
+                    inStockOnly
+                });
+            });
+        });
+    </script>
+</body>
+</html>

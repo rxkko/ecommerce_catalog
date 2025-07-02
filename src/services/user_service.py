@@ -50,3 +50,6 @@ class UserService:
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
         return {"message": "Успешный выход"}
+    
+    async def get_users(self) -> dict:
+        return await self.user_repo.get_users()

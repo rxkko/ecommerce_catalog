@@ -11,6 +11,10 @@ class UserRepository:
     def __init__(self, db: Annotated[AsyncSession, Depends(get_db)]):
         self.db = db
 
+    async def get_users(self):
+        users = await self.db.execute(select(User))
+        return users.scalars().all()
+
     async def get_user_by_id(self, user_id: int):
         result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()

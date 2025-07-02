@@ -1,6 +1,7 @@
 from src.models.product import Product
-from src.schemas.product import ProductBase, ProductUpdate
+from src.schemas.product import ProductBase, ProductUpdate, ProductRead, ProductCategory
 from src.repositories.product_repo import ProductRepository
+from typing import List
 
 
 class ProductService:
@@ -29,3 +30,6 @@ class ProductService:
 
     async def delete_product(self, product_id: int) -> dict:
         return await self.product_repo.delete_product(product_id)
+    
+    async def get_product_by_category(self, category: ProductCategory) -> List[ProductRead]:
+        return await self.product_repo.get_product_by_category(category)

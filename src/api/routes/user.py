@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Request
 from pydantic import EmailStr
 from typing import Annotated
 from src.api.dependencies import get_user_service, get_user_by_role, get_token_service, get_user_repository
@@ -6,9 +6,11 @@ from src.repositories.user_repo import UserRepository
 from src.services.token_service import TokenService
 from src.schemas.user import UserCreate
 from src.services.user_service import UserService
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(tags=["user"])
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+templates = Jinja2Templates(directory="src/frontend/templates")
 
 @router.post("/login")
 async def login_user(
@@ -24,6 +26,13 @@ async def logout_user(response: Response):
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
     return {"message": "Успешный выход"}
+
+@router.get("/register")
+async def register_user(request: Request):
+    return templates.TemplateResponse(
+            "registration.html",
+            {"request": request}
+        )
 
 @router.post("/register")
 async def register_user(user_data: UserCreate, user_service: UserServiceDep):
