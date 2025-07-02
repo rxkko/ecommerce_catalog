@@ -4,7 +4,7 @@ from typing import Annotated
 from src.api.dependencies import get_user_service, get_user_by_role, get_token_service, get_user_repository
 from src.repositories.user_repo import UserRepository
 from src.services.token_service import TokenService
-from src.schemas.user import UserCreate
+from src.schemas.user import UserCreate, LoginRequest
 from src.services.user_service import UserService
 from fastapi.templating import Jinja2Templates
 
@@ -14,12 +14,12 @@ templates = Jinja2Templates(directory="src/frontend/templates")
 
 @router.post("/login")
 async def login_user(
-    email: EmailStr,
-    password: str,
+    request: LoginRequest,
     user_service: UserServiceDep,
     response: Response
 ):
-    return await user_service.login(email, password, response)
+    print(request.email, request.password)
+    return await user_service.login(request.email, request.password, response)
 
 @router.post("/logout")
 async def logout_user(response: Response):

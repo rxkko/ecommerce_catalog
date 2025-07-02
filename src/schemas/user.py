@@ -33,3 +33,7 @@ class UserRead(BaseModel):
 
     class Config:
         orm_mode = True
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
