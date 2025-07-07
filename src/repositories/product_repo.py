@@ -1,63 +1,151 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update, delete
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound, IntegrityError
+from fastapi import HTTPException, status
 from src.models.product import Product
-from src.schemas.product import ProductBase, ProductUpdate, ProductCategory, ProductRead
-from fastapi import Depends
-from src.core.database import get_db
-from typing import Annotated, Optional, List
+from src.schemas.product import ProductBase, ProductUpdate, ProductCategory
+from typing import Optional, List, Tuple
+from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ProductRepository:
-    def __init__(self, db: Annotated[AsyncSession, Depends(get_db)]):
-        self.db = db
 
-    async def get_products(self, limit: int = 10, offset: int = 0) -> tuple[list[Product], int]:
-        products_query = select(Product).offset(offset).limit(limit)
-        products_result = await self.db.execute(products_query)
-        products = products_result.scalars().all()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-        count_query = select(func.count()).select_from(Product)
-        total = (await self.db.execute(count_query)).scalar_one()
+    async def get_products(
+        self, 
+        limit: int = 10, 
+        offset: int = 0
+    ) -> Tuple[List[Product], int]:
+        try:
+            query = select(Product).offset(offset).limit(limit)
+            result = await self.session.execute(query)
+            products = result.scalars().all()
+            
+            total = await self._get_total_products()
+            return products, total
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при получении товаров: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при получении списка товаров"
+            )
 
-        return products, total
+    async def _get_total_products(self) -> int:
+        try:
+            query = select(func.count()).select_from(Product)
+            return (await self.session.execute(query)).scalar_one()
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при подсчете товаров: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при подсчете товаров"
+            )
 
     async def create_product(self, product_data: ProductBase) -> Product:
-        new_product = Product(
-            name=product_data.name,
-            description=product_data.description,
-            price=product_data.price,
-            quantity=product_data.quantity,
-            image_url=product_data.image_url or None,
-            product_category=product_data.product_category
-        )
-        
-        self.db.add(new_product)
-        await self.db.commit()
-        await self.db.refresh(new_product)
-        return new_product
-
-    async def update_product(self, product_id: int, product_data: ProductUpdate) -> Product:
-        product = await self.get_product_by_id(product_id)
-        update_data = product_data.model_dump(exclude_unset=True, exclude_none=True)
-        for key, value in update_data.items():
-            setattr(product, key, value)
+        try:
+            product = Product(
+                name=product_data.name,
+                description=product_data.description,
+                price=product_data.price,
+                quantity=product_data.quantity,
+                image_url=product_data.image_url,
+                product_category=product_data.product_category
+            )
+            self.session.add(product)
+            await self.session.commit()
+            await self.session.refresh(product)
+            return product
             
-        await self.db.commit()
-        await self.db.refresh(product)
-        return product
+        except IntegrityError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка целостности при создании товара: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ошибка при создании товара (возможно, нарушение уникальности)"
+            )
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка БД при создании товара: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при создании товара"
+            )
 
-    async def delete_product(self, product_id: int) -> dict:
-        product = await self.get_product_by_id(product_id)
-        await self.db.delete(product)
-        await self.db.commit()
-        return {"message": f"Товар '{product.name}' успешно удален"}
+    async def update_product(
+        self, 
+        product_id: int, 
+        product_data: ProductUpdate
+    ) -> Product:
+        try:
+            product = await self.get_product_by_id(product_id)
+            if not product:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Товар не найден"
+                )
+
+            update_data = product_data.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(product, field, value)
+
+            await self.session.commit()
+            await self.session.refresh(product)
+            return product
+            
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка при обновлении товара {product_id}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при обновлении товара"
+            )
+
+    async def delete_product(self, product_id: int) -> bool:
+        try:
+            product = await self.get_product_by_id(product_id)
+            if not product:
+                return False
+
+            await self.session.delete(product)
+            await self.session.commit()
+            return True
+            
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка при удалении товара {product_id}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при удалении товара"
+            )
 
     async def get_product_by_id(self, product_id: int) -> Optional[Product]:
-        result = await self.db.execute(
-            select(Product).where(Product.id == product_id)
-        )
-        return result.scalar_one_or_none()
-    
-    async def get_product_by_category(self, category: ProductCategory) -> List[ProductRead]:
-        result = await self.db.execute(select(Product).where(Product.product_category == category))
-        products = result.scalars().all()
-        return products
+        try:
+            query = select(Product).where(Product.id == product_id)
+            result = await self.session.execute(query)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при поиске товара {product_id}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при поиске товара"
+            )
+
+    async def get_products_by_category(
+        self, 
+        category: ProductCategory
+    ) -> List[Product]:
+        try:
+            query = select(Product).where(Product.product_category == category)
+            result = await self.session.execute(query)
+            return result.scalars().all()
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при фильтрации по категории {category}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при фильтрации товаров"
+            )

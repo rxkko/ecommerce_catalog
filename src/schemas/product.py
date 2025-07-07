@@ -34,7 +34,7 @@ class ProductCreate(ProductBase):
 
 
 class ProductRead(ProductBase):
-    id: int 
-
+    id: int
+    
     class Config:
-        from_attributes=True
+        from_attributes = True
