@@ -11,10 +11,7 @@ ProductServiceDep = Annotated[ProductService, Depends(get_product_service)]
 templates = Jinja2Templates(directory="src/frontend/templates")
 
 
-@router.get(
-    "/api",
-    summary="Получить список товаров"
-)
+@router.get("/api", summary="Получить список товаров")
 async def api_get_products(
     product_service: ProductServiceDep,
     limit: int = Query(10, ge=1, description="Лимит товаров"),
@@ -23,11 +20,7 @@ async def api_get_products(
     return await product_service.get_all_products(limit=limit, offset=offset)
 
 
-@router.get(
-    "/{product_id}",
-    response_model=ProductRead,
-    summary="Получить товар по ID"
-)
+@router.get("/{product_id}", response_model=ProductRead, summary="Получить товар по ID")
 async def get_product_by_id(
     product_id: int,
     product_service: ProductServiceDep
@@ -35,12 +28,7 @@ async def get_product_by_id(
     return await product_service.get_product_by_id(product_id)
 
 
-@router.post(
-    "/",
-    response_model=ProductRead,
-    status_code=status.HTTP_201_CREATED,
-    summary="Создать новый товар"
-)
+@router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED, summary="Создать новый товар")
 async def create_product(
     product_data: ProductCreate,
     product_service: ProductServiceDep
@@ -48,11 +36,7 @@ async def create_product(
     return await product_service.create_product(product_data)
 
 
-@router.put(
-    "/{product_id}",
-    response_model=ProductRead,
-    summary="Обновить товар"
-)
+@router.put("/{product_id}", response_model=ProductRead, summary="Обновить товар")
 async def update_product(
     product_id: int,
     product_data: ProductUpdate,
@@ -61,11 +45,7 @@ async def update_product(
     return await product_service.update_product(product_id, product_data)
 
 
-@router.delete(
-    "/{product_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Удалить товар"
-)
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Удалить товар")
 async def delete_product(
     product_id: int,
     product_service: ProductServiceDep
@@ -74,10 +54,7 @@ async def delete_product(
     return None
 
 
-@router.get(
-    "/category/{category}",
-    summary="Фильтр по категории"
-)
+@router.get("/category/{category}", summary="Фильтр по категории")
 async def get_product_with_category(
     request: Request,
     category: ProductCategory, 
@@ -90,9 +67,6 @@ async def get_product_with_category(
     )
 
 
-@router.get(
-    "/",
-    include_in_schema=False
-)
+@router.get("/", include_in_schema=False)
 async def html_get_products(request: Request):
     return templates.TemplateResponse("catalog.html", {"request": request})

@@ -21,7 +21,7 @@ class ProductRepository:
         offset: int = 0
     ) -> Tuple[List[Product], int]:
         try:
-            query = select(Product).offset(offset).limit(limit)
+            query = select(Product).order_by(Product.id).offset(offset).limit(limit)
             result = await self.session.execute(query)
             products = result.scalars().all()
             

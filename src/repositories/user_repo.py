@@ -52,16 +52,22 @@ class UserRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Ошибка при поиске по email: {str(e)}"
             )
-
-    async def create_user(self, user_data: UserCreate) -> User:
+    
+    async def get_user_by_username(self, username: str) -> Optional[User]:
         try:
-            if await self.get_user_by_email(user_data.email):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Пользователь с таким email уже существует"
-                )
+            result = await self.session.execute(
+                select(User).where(User.username == username)
+            )
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Ошибка при поиске по username: {str(e)}"
+            )
 
-            user = User(**user_data.model_dump())
+    async def create_user(self, user_data: dict) -> User:
+        try:
+            user = User(**user_data)
             self.session.add(user)
             await self.session.commit()
             await self.session.refresh(user)
@@ -73,7 +79,7 @@ class UserRepository:
                 detail=f"Ошибка при создании пользователя: {str(e)}"
             )
 
-    async def update_user(self, user_id: int, user_data: UserUpdate) -> User:
+    async def update_user(self, user_id: int, user_data: dict) -> User:
         try:
             user = await self.get_user_by_id(user_id)
             if not user:
@@ -82,8 +88,7 @@ class UserRepository:
                     detail="Пользователь не найден"
                 )
 
-            update_data = user_data.model_dump(exclude_unset=True)
-            for field, value in update_data.items():
+            for field, value in user_data.items():
                 setattr(user, field, value)
 
             await self.session.commit()

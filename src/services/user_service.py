@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Response, status, Request
 from fastapi.security import OAuth2PasswordBearer
-from typing import Optional
+from datetime import datetime, timezone
 import logging
 
 from src.core.security import get_password_hash, verify_password
@@ -73,9 +73,17 @@ class UserService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Пользователь с таким email уже существует"
                 )
-                
+            
+            existing_username = await self.user_repo.get_user_by_username(user_data.username)
+            if existing_username:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Пользователь с таким username уже существует"
+                )    
+            
             user_dict = user_data.model_dump()
             user_dict["hashed_password"] = get_password_hash(user_dict.pop("password"))
+            user_dict["created_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
             return await self.user_repo.create_user(user_dict)
             
         except HTTPException:
@@ -149,3 +157,6 @@ class UserService:
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
             **cookie_params
         )
+
+    async def deactivate_user():
+        pass
