@@ -5,6 +5,9 @@ from sqlalchemy import pool
 from alembic import context
 from src.core.config import settings
 from src.models.base import Base
+from src.models.cart_item import CartItem
+from src.models.order_status import OrderStatus
+from src.models.order import Order, OrderItem
 from src.models.product import Product
 from src.models.user import User
 

@@ -8,6 +8,7 @@ from src.repositories.user_repo import UserRepository
 from src.services.product_service import ProductService
 from src.services.token_service import TokenService
 from src.services.user_service import UserService
+from src.services.cart_service import CartService
 
 
 def get_product_repository(
@@ -42,3 +43,8 @@ def get_user_service(
     token_service: TokenService = Depends(get_token_service)
 ) -> UserService:
     return UserService(user_repo, token_service)
+
+def get_cart_service(
+        db: AsyncSession = Depends(get_db)
+):
+    return CartService(db)

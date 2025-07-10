@@ -50,6 +50,21 @@
             cursor: pointer;
         }
         
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .profile-btn:hover {
+            color: #e74c3c;
+        }
+        
         .cart-count {
             background: #e74c3c;
             color: white;
@@ -371,19 +386,95 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        
+        /* Добавлено для профиля */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .profile-dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .profile-dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .profile-dropdown:hover .profile-dropdown-content {
+            display: block;
+        }
+        
+        .profile-dropdown:hover .profile-btn {
+            color: #e74c3c;
+        }
+
+        /* Добавлено для сообщений */
+        .alert-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1100;
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+        }
+        
+        .alert-message.show {
+            transform: translateX(0);
+        }
+        
+        .alert-message.error {
+            background: #e74c3c;
+        }
     </style>
 </head>
 <body>
+    <div class="alert-message" id="alertMessage"></div>
+
     <div class="header">
         <h1>Каталог товаров</h1>
         <div class="user-controls">
+            <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                <a href="#" class="profile-btn">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="profileName">Профиль</span>
+                </a>
+                <div class="profile-dropdown-content">
+                    <a href="/profile"><i class="fas fa-user"></i> Мой профиль</a>
+                    <a href="/orders"><i class="fas fa-box"></i> Мои заказы</a>
+                    <a href="/settings"><i class="fas fa-cog"></i> Настройки</a>
+                    <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+                </div>
+            </div>
             <div class="user-icon" id="userIcon">
                 <i class="fas fa-user"></i>
             </div>
             <a href="/cart">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Корзина</span>
-                <span class="cart-count">0</span>
+                <span class="cart-count" id="cartCount">0</span>
             </a>
         </div>
     </div>
@@ -501,26 +592,108 @@
     </div>
 
     <script>
+        let currentUser = null;
+        
+        // Функция для показа сообщений
+        function showAlert(message, isError = false) {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.className = isError ? 'alert-message error show' : 'alert-message show';
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        // Проверяем авторизацию при загрузке страницы
+        async function checkAuth() {
+            try {
+                // 1. Проверяем сохраненные данные в localStorage
+                const savedUser = localStorage.getItem('currentUser');
+                const authToken = localStorage.getItem('authToken');
+                
+                if (savedUser && authToken) {
+                    currentUser = JSON.parse(savedUser);
+                    updateUserStatus(true);
+                    return true;
+                }
+                
+                // 2. Если нет в localStorage, проверяем серверную сессию
+                const response = await fetch('/users/me', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${authToken || ''}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    if (user && (user.id || user.username)) {
+                        currentUser = user;
+                        // Сохраняем данные для будущих обновлений страницы
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        if (user.token) {
+                            localStorage.setItem('authToken', user.token);
+                        }
+                        updateUserStatus(true);
+                        return true;
+                    }
+                }
+                
+                // Если авторизация не прошла, очищаем данные
+                clearAuthData();
+                return false;
+                
+            } catch (error) {
+                console.error('Auth check error:', error);
+                clearAuthData();
+                return false;
+            }
+        }
+        
+        // Очистка данных авторизации
+        function clearAuthData() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            currentUser = null;
+            updateUserStatus(false);
+        }
+        
+        // Загрузка товаров
         async function loadProducts() {
             try {
-                const response = await fetch('/api/catalog');
+                const response = await fetch('/catalog/api', {
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                });
+                
                 if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                
                 const data = await response.json();
                 const products = data.items || [];
+                
                 if (products.length === 0) {
                     document.getElementById('productsContainer').innerHTML = '<div class="empty-message">Товары не найдены</div>';
                     return;
                 }
+                
                 renderProducts(products);
                 updateCartCount();
             } catch (error) {
-                document.getElementById('productsContainer').innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
+                console.error('Products load error:', error);
+                document.getElementById('productsContainer').innerHTML = 
+                    `<div class="error-message">Ошибка загрузки: ${error.message}</div>`;
             }
         }
 
+        // Отрисовка товаров
         function renderProducts(products) {
             const container = document.getElementById('productsContainer');
             container.innerHTML = '';
+            
             products.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
@@ -537,18 +710,41 @@
             });
         }
 
-        function updateCartCount() {
-            const cartCount = Math.floor(Math.random() * 10);
-            document.querySelector('.cart-count').textContent = cartCount;
+        // Обновление счетчика корзины
+        async function updateCartCount() {
+            try {
+                if (!currentUser) {
+                    document.getElementById('cartCount').textContent = '0';
+                    return;
+                }
+                
+                const response = await fetch('/api/cart/count', {
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('cartCount').textContent = data.count || '0';
+                } else {
+                    document.getElementById('cartCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Cart count error:', error);
+                document.getElementById('cartCount').textContent = '0';
+            }
         }
 
+        // Модальное окно товара
         function openModal(product) {
             document.getElementById('modalImage').src = product.image_url || 'https://via.placeholder.com/600';
             document.getElementById('modalTitle').textContent = product.name;
             document.getElementById('modalPrice').textContent = `${product.price} ₽`;
-            document.getElementById('modalDescription').textContent = product.description;
-            document.getElementById('modalCategory').textContent = product.product_category;
-            document.getElementById('modalQuantity').textContent = `В наличии: ${product.quantity} шт.`;
+            document.getElementById('modalDescription').textContent = product.description || 'Описание отсутствует';
+            document.getElementById('modalCategory').textContent = product.product_category || 'Без категории';
+            document.getElementById('modalQuantity').textContent = `В наличии: ${product.quantity || 0} шт.`;
             
             const overlay = document.getElementById('modalOverlay');
             const modal = document.getElementById('productModal');
@@ -565,7 +761,10 @@
             setTimeout(() => overlay.classList.remove('active'), 300);
         }
         
+        // Модальное окно авторизации
         function openAuthModal() {
+            if (currentUser) return;
+            
             const overlay = document.getElementById('authModalOverlay');
             const modal = document.getElementById('authModal');
             
@@ -581,6 +780,7 @@
             setTimeout(() => overlay.classList.remove('active'), 300);
         }
         
+        // Переключение между вкладками входа/регистрации
         function switchAuthTab(tabName) {
             if (tabName === 'login') {
                 document.getElementById('loginTab').classList.add('active');
@@ -595,35 +795,55 @@
             }
         }
 
+        // Обработка входа
         async function handleLogin(event) {
             event.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
+            if (!email || !password) {
+                showAlert('Пожалуйста, заполните все поля', true);
+                return;
+            }
+            
             try {
-                const response = await fetch('/login', {
+                const response = await fetch('/users/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
                 });
                 
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert('Вход выполнен успешно!');
-                    closeAuthModal();
+                    currentUser = result.user || result;
+                    if (!currentUser) throw new Error('Не получили данные пользователя');
+                    
+                    // Сохраняем данные для работы при обновлении страницы
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    if (result.token) {
+                        localStorage.setItem('authToken', result.token);
+                    }
+                    
+                    showAlert('Вход выполнен успешно!');
                     updateUserStatus(true);
+                    closeAuthModal();
+                    loadProducts();
+                    updateCartCount();
                 } else {
-                    alert(result.message || 'Ошибка при входе');
+                    showAlert(result.message || 'Ошибка при входе', true);
                 }
             } catch (error) {
-                alert('Ошибка сети: ' + error.message);
+                console.error('Login error:', error);
+                showAlert('Ошибка входа: ' + error.message, true);
             }
         }
 
+        // Обработка регистрации
         async function handleRegister(event) {
             event.preventDefault();
             
@@ -633,8 +853,13 @@
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('registerConfirmPassword').value;
             
+            if (!name || !username || !email || !password || !confirmPassword) {
+                showAlert('Пожалуйста, заполните все поля', true);
+                return;
+            }
+            
             if (password !== confirmPassword) {
-                alert('Пароли не совпадают');
+                showAlert('Пароли не совпадают', true);
                 return;
             }
             
@@ -648,7 +873,7 @@
             };
             
             try {
-                const response = await fetch('/register', {
+                const response = await fetch('/users/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -659,30 +884,80 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert('Регистрация прошла успешно! Вы можете войти.');
+                    showAlert('Регистрация прошла успешно! Вы можете войти.');
                     switchAuthTab('login');
+                    document.getElementById('registerForm').reset();
                 } else {
-                    alert(result.message || 'Ошибка при регистрации');
+                    showAlert(result.message || 'Ошибка при регистрации', true);
                 }
             } catch (error) {
-                alert('Ошибка сети: ' + error.message);
+                console.error('Register error:', error);
+                showAlert('Ошибка регистрации: ' + error.message, true);
             }
         }
 
+        // Обновление UI в зависимости от статуса авторизации
         function updateUserStatus(isLoggedIn) {
-            const userIcon = document.querySelector('.user-icon i');
-            if (isLoggedIn) {
-                userIcon.classList.remove('fa-user');
-                userIcon.classList.add('fa-user-check');
+            const userIcon = document.getElementById('userIcon');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (!userIcon || !profileDropdown) {
+                console.error('User control elements not found!');
+                return;
+            }
+            
+            if (isLoggedIn && currentUser) {
+                profileDropdown.style.display = 'block';
+                userIcon.style.display = 'none';
+                
+                const profileName = document.getElementById('profileName');
+                if (profileName) {
+                    profileName.textContent = currentUser.name || currentUser.username || 'Профиль';
+                }
             } else {
-                userIcon.classList.remove('fa-user-check');
-                userIcon.classList.add('fa-user');
+                profileDropdown.style.display = 'none';
+                userIcon.style.display = 'block';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // Выход из системы
+        async function handleLogout() {
+            try {
+                const response = await fetch('/users/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                });
+                
+                // Всегда очищаем данные на клиенте
+                clearAuthData();
+                
+                if (response.ok) {
+                    showAlert('Вы успешно вышли из системы.');
+                } else {
+                    const result = await response.json();
+                    showAlert(result.message || 'Сессия завершена');
+                }
+                
+                loadProducts();
+                updateCartCount();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showAlert('Ошибка при выходе: ' + error.message, true);
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Проверяем авторизацию
+            await checkAuth();
+            
+            // Загружаем товары
             loadProducts();
             
+            // Настраиваем обработчики событий
             document.getElementById('closeModal').addEventListener('click', closeModal);
             document.getElementById('modalOverlay').addEventListener('click', closeModal);
             
@@ -698,6 +973,12 @@
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('registerForm').addEventListener('submit', handleRegister);
             
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                handleLogout();
+            });
+            
+            // Фильтры товаров
             document.querySelector('.apply-filters').addEventListener('click', function() {
                 const selectedCategories = [];
                 if (document.getElementById('category-phones').checked) selectedCategories.push('phones');
@@ -708,12 +989,14 @@
                 const maxPrice = document.getElementById('price-max').value;
                 const inStockOnly = document.getElementById('in-stock').checked;
                 
-                console.log('Применены фильтры:', {
+                console.log('Applied filters:', {
                     categories: selectedCategories,
                     minPrice,
                     maxPrice,
                     inStockOnly
                 });
+                
+                // Здесь можно добавить фильтрацию товаров
             });
         });
     </script>

@@ -1,7 +1,7 @@
-from sqlalchemy import Integer, String, Numeric, Text
-from sqlalchemy.orm import Mapped, mapped_column
 from decimal import Decimal
-from src.models.base import Base
+from sqlalchemy import String, Integer, Text, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from .base import Base
 
 
 class Product(Base):
@@ -14,4 +14,7 @@ class Product(Base):
     quantity: Mapped[int] = mapped_column(Integer, default=0)
     image_url: Mapped[str] = mapped_column(String(255))
     product_category: Mapped[str] = mapped_column(String(50), index=True)
+
+    in_carts: Mapped[list['CartItem']] = relationship('CartItem', back_populates='product')
+    in_orders: Mapped[list['OrderItem']] = relationship('OrderItem', back_populates='product')
 

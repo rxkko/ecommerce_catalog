@@ -29,11 +29,6 @@ async def logout(response: Response):
     return {"message": "Logout successful"}
 
 
-@router.get("/register", include_in_schema=False)
-async def register_page(request: Request):
-    return templates.TemplateResponse("registration.html", {"request": request})
-
-
 @router.post("/register", status_code=status.HTTP_201_CREATED, summary="Регистрация нового пользователя")
 async def register(
     user_data: UserCreate,
@@ -77,3 +72,7 @@ async def deactivate_user(
 ):
     await user_service.deactivate_user(user_id)
     return None
+
+@router.get("/me")
+async def check_auth(user: User = Depends(get_current_user)):
+    return user
