@@ -16,6 +16,6 @@ templates = Jinja2Templates(directory="src/frontend/templates")
 @router.get("/items")
 async def get_products_from_cart(
     cart_service: CartServiceDep,
-    _: User = Depends(get_current_user)                         
+    user: User = Depends(get_current_user)                         
 ):
-    return await cart_service.get_products_from_cart()
+    return await cart_service.get_products_from_cart(user.id)

@@ -18,6 +18,7 @@ class ProductBase(BaseModel):
     quantity: int
     image_url: Optional[str] = None
     product_category: ProductCategory
+       
 
 
 class ProductUpdate(BaseModel):

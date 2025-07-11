@@ -5,6 +5,7 @@ from src.core.config import settings
 from src.dependencies.db_deps import get_db
 from src.repositories.product_repo import ProductRepository
 from src.repositories.user_repo import UserRepository
+from src.repositories.cart_repo import CartRepository
 from src.services.product_service import ProductService
 from src.services.token_service import TokenService
 from src.services.user_service import UserService
@@ -44,7 +45,12 @@ def get_user_service(
 ) -> UserService:
     return UserService(user_repo, token_service)
 
+def get_cart_repository(
+    db: AsyncSession = Depends(get_db)
+) -> CartRepository:
+    return CartRepository(db)
+
 def get_cart_service(
-        db: AsyncSession = Depends(get_db)
-):
-    return CartService(db)
+    cart_repo: CartRepository = Depends(get_cart_repository)    
+) -> CartService:
+    return CartService(cart_repo)
