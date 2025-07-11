@@ -35,6 +35,11 @@ async def create_product(
 ):
     return await product_service.create_product(product_data)
 
+@router.post("/{product_id}/add", summary="Добавить товар в корзину")
+async def add_product_to_cart(
+    product_id: int,
+    ):
+    pass
 
 @router.put("/{product_id}", response_model=ProductRead, summary="Обновить товар")
 async def update_product(

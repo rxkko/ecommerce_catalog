@@ -3,8 +3,9 @@ from typing import TypedDict
 from datetime import datetime
 
 
-class TokenData(TypedDict):
+class TokenData(BaseModel):
     sub: str
+    type: str
     exp: datetime
 
 class TokenPair(BaseModel):

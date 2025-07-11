@@ -13,7 +13,7 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 CartServiceDep = Annotated[CartService, Depends(get_cart_service)]
 templates = Jinja2Templates(directory="src/frontend/templates")
 
-@router.get("/")
+@router.get("/items")
 async def get_products_from_cart(
     cart_service: CartServiceDep,
     _: User = Depends(get_current_user)                         

@@ -36,6 +36,7 @@ class TokenService:
                 "type": token_type,
                 "iss": settings.JWT_ISSUER
             })
+            logger.debug(f"Создание токена типа {token_type}, срок: {expires_delta}")
             return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         except Exception as e:
             logger.error(f"Ошибка создания токена: {str(e)}")
@@ -107,8 +108,8 @@ class TokenService:
             
             token_pair = self.create_token_pair(token_data.sub)
             
-            self._set_auth_cookies(response, token_pair)
-            
+            self.set_auth_cookies(response, token_pair)
+            print ("Токены обновленны")
             return {
                 "message": "Токены успешно обновлены",
                 "user_id": token_data.sub,
@@ -125,11 +126,12 @@ class TokenService:
                 headers={"WWW-Authenticate": "Bearer"}
             )
 
-    def _set_auth_cookies(self, response: Response, token_pair: TokenPair):
+    def set_auth_cookies(self, response: Response, token_pair: TokenPair) -> None:
         cookie_params = {
             "httponly": True,
-            "secure": settings.SECURE_COOKIES,
-            "samesite": "lax"
+            "secure": True,
+            "samesite": "lax",
+            "path": "/",
         }
         
         response.set_cookie(

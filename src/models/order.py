@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .order_status import OrderStatus
 
+
 class Order(Base):
     __tablename__ = "orders"
     

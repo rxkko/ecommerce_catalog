@@ -47,7 +47,7 @@ class UserService:
             user = await self.authenticate_user(email, password)
             token_pair = self.token_service.create_token_pair(str(user.id))
             
-            self._set_auth_cookies(response, token_pair)
+            self.token_service.set_auth_cookies(response, token_pair)
             
             return {
                 "message": "Успешный вход",
@@ -136,27 +136,27 @@ class UserService:
                 detail="Ошибка при получении списка пользователей"
             )
 
-    def _set_auth_cookies(self, response: Response, token_pair) -> None:
-        cookie_params = {
-            "httponly": True,
-            "secure": True,
-            "samesite": "lax",
-            "path": "/",
-        }
+    # def _set_auth_cookies(self, response: Response, token_pair: TokenPair) -> None:
+    #     cookie_params = {
+    #         "httponly": True,
+    #         "secure": True,
+    #         "samesite": "lax",
+    #         "path": "/",
+    #     }
         
-        response.set_cookie(
-            key="access_token",
-            value=token_pair.access_token,
-            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            **cookie_params
-        )
+    #     response.set_cookie(
+    #         key="access_token",
+    #         value=token_pair.access_token,
+    #         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    #         **cookie_params
+    #     )
         
-        response.set_cookie(
-            key="refresh_token",
-            value=token_pair.refresh_token,
-            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
-            **cookie_params
-        )
+    #     response.set_cookie(
+    #         key="refresh_token",
+    #         value=token_pair.refresh_token,
+    #         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+    #         **cookie_params
+    #     )
 
     async def deactivate_user():
         pass
