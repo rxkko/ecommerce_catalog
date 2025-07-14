@@ -134,6 +134,17 @@ class ProductRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка при поиске товара"
             )
+        
+    async def get_products_by_ids(self, ids: List[int]) -> List[Product]:
+        try:
+            result = await self.session.execute(select(Product).where(Product.id.in_(ids)))
+            return result.scalars().all()
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при поиске товаров")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при поиске товаров"
+            )
 
     async def get_products_by_category(
         self, 

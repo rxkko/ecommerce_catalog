@@ -18,7 +18,9 @@ class ProductBase(BaseModel):
     quantity: int
     image_url: Optional[str] = None
     product_category: ProductCategory
-       
+
+    class Config:
+        from_attributes = True   
 
 
 class ProductUpdate(BaseModel):

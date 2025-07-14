@@ -51,6 +51,7 @@ def get_cart_repository(
     return CartRepository(db)
 
 def get_cart_service(
-    cart_repo: CartRepository = Depends(get_cart_repository)    
+    cart_repo: CartRepository = Depends(get_cart_repository),
+    product_service: ProductService = Depends(get_product_service)    
 ) -> CartService:
-    return CartService(cart_repo)
+    return CartService(cart_repo, product_service)

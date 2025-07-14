@@ -5,7 +5,7 @@ from typing import List
 
 class CartResponse(BaseModel):
     products: List[ProductBase]
-    total_price: float
+    total_price: float | None = None
 
     class Config:
         from_attributes = True

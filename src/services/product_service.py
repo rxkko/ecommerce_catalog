@@ -28,6 +28,13 @@ class ProductService:
             )
         return product
 
+    async def get_products_by_ids(self, ids: List[int]) -> List[ProductRead]:
+        try:
+            products = await self.product_repo.get_products_by_ids(ids)
+            return products
+        except HTTPException as e:
+            raise e
+        
     async def get_all_products(
         self, 
         limit: int = 10, 

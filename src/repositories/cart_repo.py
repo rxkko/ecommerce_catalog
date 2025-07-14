@@ -16,6 +16,7 @@ class CartRepository:
         try:
             products = await self.session.execute(select(CartItem).where(CartItem.user_id == user_id))
             products = products.scalars().all()
+            print(products)
             return products
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении корзины: {str(e)}")
