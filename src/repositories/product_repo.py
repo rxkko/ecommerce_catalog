@@ -147,17 +147,29 @@ class ProductRepository:
             )
 
     async def get_products_by_categories(
-        self, 
-        categories: List[ProductCategory]
+        self,
+        categories: List[ProductCategory],
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None
     ) -> List[Product]:
         try:
-            query = select(Product).where(Product.product_category.in_(categories))
+            query = select(Product).where(
+                Product.product_category.in_(categories)
+            )
+            
+            if min_price is not None:
+                query = query.where(Product.price >= min_price)
+                
+            if max_price is not None:
+                query = query.where(Product.price <= max_price)
+
             result = await self.session.execute(query)
             return result.scalars().all()
+            
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при фильтрации по категориям {categories}: {str(e)}")
+            logger.error(f"Ошибка фильтрации товаров по категриям {categories}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка при фильтрации товаров"
+                detail="Ошибка во время фильтрации товаров"
             )
         

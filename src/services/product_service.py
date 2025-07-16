@@ -107,14 +107,20 @@ class ProductService:
             )
 
     async def get_products_by_categories(
-        self, 
-        categories: List[ProductCategory]
+        self,
+        categories: List[ProductCategory],
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None
     ) -> List[ProductRead]:
         try:
-            return await self.product_repo.get_products_by_categories(categories)
+            return await self.product_repo.get_products_by_categories(
+                categories=categories,
+                min_price=min_price,
+                max_price=max_price
+            )
         except Exception as e:
-            logger.error(f"Ошибка фильтрации по категориям {categories}: {str(e)}")
+            logger.error(f"Ошибка фильтрации товаров по категории {categories}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка при фильтрации продуктов"
+                detail="Ошибка во время фильтрации"
             )

@@ -233,7 +233,6 @@
             color: #555;
         }
         
-        /* Остальные стили остаются без изменений */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -463,6 +462,26 @@
         .alert-message.error {
             background: #e74c3c;
         }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .loading-spinner i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 16px;
+            grid-column: 1 / -1;
+        }
     </style>
 </head>
 <body>
@@ -517,14 +536,6 @@
                 <div class="price-range">
                     <input type="number" placeholder="От" id="price-min" min="0">
                     <input type="number" placeholder="До" id="price-max" min="0">
-                </div>
-            </div>
-            
-            <div class="filter-section">
-                <h3>Наличие</h3>
-                <div class="filter-option">
-                    <input type="checkbox" id="in-stock" checked>
-                    <label for="in-stock">Только в наличии</label>
                 </div>
             </div>
             
@@ -606,23 +617,156 @@
         </form>
     </div>
 
+    
     <script>
+        document.addEventListener('DOMContentLoaded', async () => {
         let currentUser = null;
-        let currentFilters = {
-            categories: ['phones', 'laptops', 'tablets'],
-            minPrice: null,
-            maxPrice: null,
-            inStockOnly: true
-        };
         
-        function showAlert(message, isError = false) {
-            const alert = document.getElementById('alertMessage');
-            alert.textContent = message;
-            alert.className = isError ? 'alert-message error show' : 'alert-message show';
+        await checkAuth();
+        await loadInitialProducts();
+        setupEventListeners();
+
+        async function loadInitialProducts() {
+            const container = document.getElementById('productsContainer');
+            try {
+                container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Загрузка товаров...</div>';
+                
+                document.querySelectorAll('.filter-section input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                const response = await fetch('/catalog/api', {
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+                
+                const data = await response.json();
+                renderProducts(data.products || []);
+                updateCartCount();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+                container.innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadFilteredProducts() {
+            const container = document.getElementById('productsContainer');
+            try {
+                container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Загрузка товаров...</div>';
+                
+                const categoryCheckboxes = document.querySelectorAll('.filter-section input[type="checkbox"][data-category]:checked');
+                const selectedCategories = Array.from(categoryCheckboxes).map(cb => cb.dataset.category);
+                
+                const minPrice = document.getElementById('price-min').value;
+                const maxPrice = document.getElementById('price-max').value;
+                
+                const params = new URLSearchParams();
+                selectedCategories.forEach(cat => params.append('categories', cat));
+                if (minPrice) params.append('min_price', minPrice);
+                if (maxPrice) params.append('max_price', maxPrice);
+                
+                const response = await fetch(`/catalog/api/category/?${params.toString()}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+                
+                const data = await response.json();
+                renderProducts(data.products || []);
+                updateCartCount();
+                
+                window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+                container.innerHTML = `<div class="error-message">Ошибка: ${error.message}</div>`;
+            }
+        }
+        
+        function applyFilters() {
+            const hasCategoryFilters = document.querySelectorAll('.filter-section input[type="checkbox"][data-category]:checked').length > 0;
+            const hasPriceFilters = document.getElementById('price-min').value || document.getElementById('price-max').value;
             
-            setTimeout(() => {
-                alert.classList.remove('show');
-            }, 3000);
+            if (hasCategoryFilters || hasPriceFilters) {
+                loadFilteredProducts();
+            } else {
+                loadInitialProducts();
+                window.history.pushState({}, '', window.location.pathname);
+            }
+        }
+        
+        function renderProducts(products) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+            
+            if (products.length === 0) {
+                container.innerHTML = '<div class="empty-message">Товары не найдены</div>';
+                return;
+            }
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-image-container">
+                        ${product.image_url ? 
+                            `<img class="product-image" src="${product.image_url}" alt="${product.name}">` : 
+                            '<div style="width:100%;height:100%;background:#eee;"></div>'}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <div class="product-price">${product.price} ₽</div>
+                        <div class="product-category">${product.product_category || 'Без категории'}</div>
+                    </div>
+                `;
+                productCard.addEventListener('click', () => openModal(product));
+                container.appendChild(productCard);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('modalOverlay').addEventListener('click', closeModal);
+            document.getElementById('userIcon').addEventListener('click', openAuthModal);
+            document.getElementById('closeAuthModal').addEventListener('click', closeAuthModal);
+            document.getElementById('authModalOverlay').addEventListener('click', closeAuthModal);
+            
+            document.getElementById('switchToRegister').addEventListener('click', () => switchAuthTab('register'));
+            document.getElementById('switchToLogin').addEventListener('click', () => switchAuthTab('login'));
+            document.getElementById('registerTab').addEventListener('click', () => switchAuthTab('register'));
+            document.getElementById('loginTab').addEventListener('click', () => switchAuthTab('login'));
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                handleLogout();
+            });
+            
+            document.getElementById('applyFilters').addEventListener('click', applyFilters);
+            
+            document.querySelectorAll('.filter-section input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', applyFilters);
+            });
+            
+            document.getElementById('price-min').addEventListener('change', applyFilters);
+            document.getElementById('price-max').addEventListener('change', applyFilters);
+            
+            window.addEventListener('popstate', () => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.toString()) {
+                    loadFilteredProducts();
+                } else {
+                    loadInitialProducts();
+                }
+            });
         }
 
         async function checkAuth() {
@@ -646,15 +790,13 @@
                 
                 if (response.ok) {
                     const user = await response.json();
-                    if (user && (user.id || user.username)) {
-                        currentUser = user;
-                        localStorage.setItem('currentUser', JSON.stringify(user));
-                        if (user.token) {
-                            localStorage.setItem('authToken', user.token);
-                        }
-                        updateUserStatus(true);
-                        return true;
+                    currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    if (user.token) {
+                        localStorage.setItem('authToken', user.token);
                     }
+                    updateUserStatus(true);
+                    return true;
                 }
                 
                 clearAuthData();
@@ -674,87 +816,20 @@
             updateUserStatus(false);
         }
         
-        async function loadProducts() {
-            try {
-                let url = '/catalog/api';
-                
-                // Если выбрана только одна категория, используем /catalog/category/{category}
-                if (currentFilters.categories.length === 1) {
-                    url = `/catalog/category/${currentFilters.categories[0]}`;
-                }
-                
-                // Добавляем параметры фильтров
-                const params = new URLSearchParams();
-                
-                if (currentFilters.categories.length > 1) {
-                    currentFilters.categories.forEach(cat => params.append('category', cat));
-                }
-                
-                if (currentFilters.minPrice) {
-                    params.append('min_price', currentFilters.minPrice);
-                }
-                
-                if (currentFilters.maxPrice) {
-                    params.append('max_price', currentFilters.maxPrice);
-                }
-                
-                if (currentFilters.inStockOnly) {
-                    params.append('in_stock', 'true');
-                }
-                
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
-                
-                const response = await fetch(url, {
-                    credentials: 'include',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-                
-                const data = await response.json();
-                const products = data.items || [];
-                
-                if (products.length === 0) {
-                    document.getElementById('productsContainer').innerHTML = '<div class="empty-message">Товары не найдены</div>';
-                    return;
-                }
-                
-                renderProducts(products);
-                updateCartCount();
-            } catch (error) {
-                console.error('Products load error:', error);
-                document.getElementById('productsContainer').innerHTML = 
-                    `<div class="error-message">Ошибка загрузки: ${error.message}</div>`;
+        function updateUserStatus(isLoggedIn) {
+            const userIcon = document.getElementById('userIcon');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (isLoggedIn && currentUser) {
+                profileDropdown.style.display = 'block';
+                userIcon.style.display = 'none';
+                document.getElementById('profileName').textContent = currentUser.name || currentUser.username || 'Профиль';
+            } else {
+                profileDropdown.style.display = 'none';
+                userIcon.style.display = 'block';
             }
         }
-
-        function renderProducts(products) {
-            const container = document.getElementById('productsContainer');
-            container.innerHTML = '';
-            
-            products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                productCard.innerHTML = `
-                    <div class="product-image-container">
-                        ${product.image_url ? 
-                            `<img class="product-image" src="${product.image_url}" alt="${product.name}">` : 
-                            '<div style="width:100%;height:100%;background:#eee;"></div>'}
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">${product.name}</h3>
-                        <div class="product-price">${product.price} ₽</div>
-                    </div>
-                `;
-                productCard.addEventListener('click', () => openModal(product));
-                container.appendChild(productCard);
-            });
-        }
-
+        
         async function updateCartCount() {
             try {
                 if (!currentUser) {
@@ -780,7 +855,7 @@
                 document.getElementById('cartCount').textContent = '0';
             }
         }
-
+        
         function openModal(product) {
             document.getElementById('modalImage').src = product.image_url || '';
             document.getElementById('modalTitle').textContent = product.name;
@@ -789,37 +864,24 @@
             document.getElementById('modalCategory').textContent = product.product_category || 'Без категории';
             document.getElementById('modalQuantity').textContent = `В наличии: ${product.quantity || 0} шт.`;
             
-            const overlay = document.getElementById('modalOverlay');
-            const modal = document.getElementById('productModal');
-            
-            overlay.classList.add('active');
-            setTimeout(() => modal.classList.add('active'), 10);
+            document.getElementById('modalOverlay').classList.add('active');
+            setTimeout(() => document.getElementById('productModal').classList.add('active'), 10);
         }
         
         function closeModal() {
-            const overlay = document.getElementById('modalOverlay');
-            const modal = document.getElementById('productModal');
-            
-            modal.classList.remove('active');
-            setTimeout(() => overlay.classList.remove('active'), 300);
+            document.getElementById('productModal').classList.remove('active');
+            setTimeout(() => document.getElementById('modalOverlay').classList.remove('active'), 300);
         }
         
         function openAuthModal() {
             if (currentUser) return;
-            
-            const overlay = document.getElementById('authModalOverlay');
-            const modal = document.getElementById('authModal');
-            
-            overlay.classList.add('active');
-            setTimeout(() => modal.classList.add('active'), 10);
+            document.getElementById('authModalOverlay').classList.add('active');
+            setTimeout(() => document.getElementById('authModal').classList.add('active'), 10);
         }
         
         function closeAuthModal() {
-            const overlay = document.getElementById('authModalOverlay');
-            const modal = document.getElementById('authModal');
-            
-            modal.classList.remove('active');
-            setTimeout(() => overlay.classList.remove('active'), 300);
+            document.getElementById('authModal').classList.remove('active');
+            setTimeout(() => document.getElementById('authModalOverlay').classList.remove('active'), 300);
         }
         
         function switchAuthTab(tabName) {
@@ -835,17 +897,12 @@
                 document.getElementById('loginForm').classList.remove('active');
             }
         }
-
+        
         async function handleLogin(event) {
             event.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                showAlert('Пожалуйста, заполните все поля', true);
-                return;
-            }
             
             try {
                 const response = await fetch('/users/login', {
@@ -861,8 +918,6 @@
                 
                 if (response.ok) {
                     currentUser = result.user || result;
-                    if (!currentUser) throw new Error('Не получили данные пользователя');
-                    
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     if (result.token) {
                         localStorage.setItem('authToken', result.token);
@@ -871,7 +926,7 @@
                     showAlert('Вход выполнен успешно!');
                     updateUserStatus(true);
                     closeAuthModal();
-                    loadProducts();
+                    loadInitialProducts();
                     updateCartCount();
                 } else {
                     showAlert(result.message || 'Ошибка при входе', true);
@@ -881,7 +936,7 @@
                 showAlert('Ошибка входа: ' + error.message, true);
             }
         }
-
+        
         async function handleRegister(event) {
             event.preventDefault();
             
@@ -891,24 +946,10 @@
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('registerConfirmPassword').value;
             
-            if (!name || !username || !email || !password || !confirmPassword) {
-                showAlert('Пожалуйста, заполните все поля', true);
-                return;
-            }
-            
             if (password !== confirmPassword) {
                 showAlert('Пароли не совпадают', true);
                 return;
             }
-            
-            const userData = {
-                name,
-                username,
-                email,
-                password,
-                is_active: true,
-                is_admin: false
-            };
             
             try {
                 const response = await fetch('/users/register', {
@@ -916,7 +957,14 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(userData)
+                    body: JSON.stringify({
+                        name,
+                        username,
+                        email,
+                        password,
+                        is_active: true,
+                        is_admin: false
+                    })
                 });
                 
                 const result = await response.json();
@@ -933,30 +981,7 @@
                 showAlert('Ошибка регистрации: ' + error.message, true);
             }
         }
-
-        function updateUserStatus(isLoggedIn) {
-            const userIcon = document.getElementById('userIcon');
-            const profileDropdown = document.getElementById('profileDropdown');
-            
-            if (!userIcon || !profileDropdown) {
-                console.error('User control elements not found!');
-                return;
-            }
-            
-            if (isLoggedIn && currentUser) {
-                profileDropdown.style.display = 'block';
-                userIcon.style.display = 'none';
-                
-                const profileName = document.getElementById('profileName');
-                if (profileName) {
-                    profileName.textContent = currentUser.name || currentUser.username || 'Профиль';
-                }
-            } else {
-                profileDropdown.style.display = 'none';
-                userIcon.style.display = 'block';
-            }
-        }
-
+        
         async function handleLogout() {
             try {
                 const response = await fetch('/users/logout', {
@@ -968,85 +993,31 @@
                 });
                 
                 clearAuthData();
-                
-                if (response.ok) {
-                    showAlert('Вы успешно вышли из системы.');
-                } else {
-                    const result = await response.json();
-                    showAlert(result.message || 'Сессия завершена');
-                }
-                
-                loadProducts();
+                showAlert('Вы успешно вышли из системы.');
+                loadInitialProducts();
                 updateCartCount();
             } catch (error) {
                 console.error('Logout error:', error);
                 showAlert('Ошибка при выходе: ' + error.message, true);
             }
         }
-
         
-        function applyFilters() {
-            const categoryCheckboxes = document.querySelectorAll('.filter-section input[type="checkbox"][data-category]');
-            const selectedCategories = [];
+        function showAlert(message, isError = false) {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.className = isError ? 'alert-message error show' : 'alert-message show';
             
-            categoryCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    selectedCategories.push(checkbox.dataset.category);
-                }
-            });
-            
-            if (selectedCategories.length === 1) {
-                window.location.href = `/catalog/category/${selectedCategories[0]}`;
-                return;
-            }
-            
-            if (selectedCategories.length > 1) {
-                const params = new URLSearchParams();
-                selectedCategories.forEach(cat => params.append('categories', cat));
-                
-                const minPrice = document.getElementById('price-min').value;
-                const maxPrice = document.getElementById('price-max').value;
-                
-                if (minPrice) params.append('min_price', minPrice);
-                if (maxPrice) params.append('max_price', maxPrice);
-                
-                const inStockOnly = document.getElementById('in-stock').checked;
-                if (inStockOnly) params.append('in_stock', 'true');
-                
-                window.location.href = `/catalog/?${params.toString()}`;
-                return;
-            }
-            
-            window.location.href = '/catalog';
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
         }
+    });
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            
-            loadProducts();
-            
-            document.getElementById('closeModal').addEventListener('click', closeModal);
-            document.getElementById('modalOverlay').addEventListener('click', closeModal);
-            
-            document.getElementById('userIcon').addEventListener('click', openAuthModal);
-            document.getElementById('closeAuthModal').addEventListener('click', closeAuthModal);
-            document.getElementById('authModalOverlay').addEventListener('click', closeAuthModal);
-            
-            document.getElementById('switchToRegister').addEventListener('click', () => switchAuthTab('register'));
-            document.getElementById('switchToLogin').addEventListener('click', () => switchAuthTab('login'));
-            document.getElementById('registerTab').addEventListener('click', () => switchAuthTab('register'));
-            document.getElementById('loginTab').addEventListener('click', () => switchAuthTab('login'));
-            
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('registerForm').addEventListener('submit', handleRegister);
-            
-            document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                handleLogout();
-            });
-            
-            document.getElementById('applyFilters').addEventListener('click', applyFilters);
+    window.onload = function() {
+        document.querySelectorAll('.filter-section input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
         });
+    };
     </script>
 </body>
 </html>

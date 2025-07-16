@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.templating import Jinja2Templates
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 from src.services.product_service import ProductService
 from src.api.dependencies import get_product_service
@@ -59,17 +59,31 @@ async def delete_product(
     return None
 
 
-@router.get("/category/", summary="Фильтр по категориям")
-async def get_products_with_categories(
-    request: Request,
+# @router.get("/category/", summary="Фильтр по категориям")
+# async def get_products_with_categories(
+#     request: Request,
+#     product_service: ProductServiceDep,
+#     categories: List[ProductCategory] = Query(...)
+# ):
+#     products = await product_service.get_products_by_categories(categories)
+#     return templates.TemplateResponse(
+#         "catalog.html",
+#         {"request": request, "products": products}
+#     )
+
+@router.get("/api/category/", response_model=List[ProductRead])
+async def get_products_by_categories_api(
+    product_service: ProductServiceDep,
     categories: List[ProductCategory] = Query(...),
-    product_service: ProductServiceDep = Depends()
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None
 ):
-    products = await product_service.get_products_by_categories(categories)
-    return templates.TemplateResponse(
-        "catalog.html",
-        {"request": request, "products": products}
+    products = await product_service.get_products_by_categories(
+        categories,
+        min_price=min_price,
+        max_price=max_price
     )
+    return products
 
 
 @router.get("/", include_in_schema=False)
