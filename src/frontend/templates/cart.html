@@ -3,184 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
-   
+    <title>Корзина</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #eee;
+        @media (min-width: 1025px) {
+            .h-custom {
+                height: 100vh !important;
+            }
         }
-        .h-custom {
-            height: calc(100% - 73px);
+
+        .card-registration .select-input.form-control[readonly]:not([disabled]) {
+            font-size: 1rem;
+            line-height: 2.15;
+            padding-left: .75em;
+            padding-right: .75em;
         }
-        .card {
-            border-radius: 10px;
-        }
-        .bg-primary {
-            background-color: #3b71ca !important;
+
+        .card-registration .select-arrow {
+            top: 13px;
         }
     </style>
 </head>
 <body>
-<section class="h-100 h-custom">
-    <div class="container py-5 h-100">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body p-4">
-                        <div class="row">
-                            <div class="col-lg-7">
-                                <h5 class="mb-3"><a href="/products" class="text-body"><i
-                                    class="fas fa-long-arrow-alt-left me-2"></i>Continue shopping</a></h5>
-                                <hr>
+<section class="h-100 h-custom" style="background-color: #d2c9ff;">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-12">
+        <div class="card card-registration card-registration-2" style="border-radius: 15px;">
+          <div class="card-body p-0">
+            <div class="row g-0">
+              <div class="col-lg-8">
+                <div class="p-5">
+                  <div class="d-flex justify-content-between align-items-center mb-5">
+                    <h1 class="fw-bold mb-0">Корзина</h1>
+                    <h6 class="mb-0 text-muted">0 items</h6>
+                  </div>
+                  <hr class="my-4">
 
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <div>
-                                        <p class="mb-1">Shopping cart</p>
-                                        <p class="mb-0" id="cart-count">You have 0 items in your cart</p>
-                                    </div>
-                                    <div>
-                                        <p class="mb-0"><span class="text-muted">Sort by:</span> 
-                                        <a href="#" class="text-body">price <i class="fas fa-angle-down mt-1"></i></a></p>
-                                    </div>
-                                </div>
-
-                                <div id="cart-items">
-                                    
-                                </div>
-
-                            </div>
-                            <div class="col-lg-5">
-                                <div class="card bg-primary text-white rounded-3">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-center mb-4">
-                                            <h5 class="mb-0">Order Summary</h5>
-                                            <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp"
-                                                class="img-fluid rounded-3" style="width: 45px;" alt="Avatar">
-                                        </div>
-
-                                        <hr class="my-4">
-
-                                        <div class="d-flex justify-content-between">
-                                            <p class="mb-2">Subtotal</p>
-                                            <p class="mb-2" id="subtotal">$0.00</p>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between">
-                                            <p class="mb-2">Shipping</p>
-                                            <p class="mb-2">$20.00</p>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between mb-4">
-                                            <p class="mb-2">Total(Incl. taxes)</p>
-                                            <p class="mb-2" id="total">$20.00</p>
-                                        </div>
-
-                                        <button type="button" class="btn btn-info btn-block btn-lg" id="checkout-btn">
-                                            <div class="d-flex justify-content-between">
-                                                <span id="checkout-total">$20.00</span>
-                                                <span>Checkout <i class="fas fa-long-arrow-alt-right ms-2"></i></span>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  <div class="pt-5">
+                    <h6 class="mb-0"><a href="/catalog" class="text-body"><i
+                          class="fas fa-long-arrow-alt-left me-2"></i>На главную</a></h6>
+                  </div>
                 </div>
+              </div>
+              <div class="col-lg-4 bg-body-tertiary">
+                <div class="p-5">
+                  <h3 class="fw-bold mb-5 mt-2 pt-1">Оплата</h3>
+                  <hr class="my-4">
+
+                  <h5 class="text-uppercase mb-3">Адрес доставки</h5>
+
+                  <div class="mb-4 pb-2">
+                    <select data-mdb-select-init class="form-select">
+                      <option value="1">Standard-Delivery- €5.00</option>
+                      <option value="2">Express Delivery - €10.00</option>
+                      <option value="3">Premium Delivery - €20.00</option>
+                    </select>
+                  </div>
+
+                  <h5 class="text-uppercase mb-3">Промокод</h5>
+
+                  <div class="mb-5">
+                    <div data-mdb-input-init class="form-outline">
+                      <input type="text" id="form3Examplea2" class="form-control form-control-lg" />
+                      <label class="form-label" for="form3Examplea2"></label>
+                    </div>
+                  </div>
+
+                  <hr class="my-4">
+
+                  <div class="d-flex justify-content-between mb-5">
+                    <h5 class="text-uppercase">Итого</h5>
+                    <h5>BYN 5.00</h5>
+                  </div>
+
+                  <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-block btn-lg"
+                    data-mdb-ripple-color="dark">Заказать</button>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </section>
 
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fetchCartItems();
-    });
 
-    function fetchCartItems() {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    function loadCartItems() {
         fetch('/cart/items')
-            .then(response => response.json())
-            .then(data => {
-                renderCartItems(data);
-                calculateTotals(data);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
             })
-            .catch(error => console.error('Error:', error));
+            .then(data => {
+                updateCartUI(data);
+            })
+            .catch(error => {
+                console.error('Error fetching cart items:', error);
+            });
     }
 
-    function renderCartItems(items) {
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartCountElement = document.getElementById('cart-count');
+    function updateCartUI(data) {
+        const cartItemsContainer = document.querySelector('.col-lg-8 .p-5');
+        const summaryContainer = document.querySelector('.col-lg-4.bg-body-tertiary .p-5');
         
-        cartCountElement.textContent = `You have ${items.length} items in your cart`;
+        const existingItems = cartItemsContainer.querySelectorAll('.row.mb-4');
+        existingItems.forEach(item => item.remove());
         
-        if (items.length === 0) {
-            cartItemsContainer.innerHTML = '<p>Your cart is empty</p>';
-            return;
-        }
+        const existingHrs = cartItemsContainer.querySelectorAll('hr.my-4');
+        existingHrs.forEach(hr => hr.remove());
+        
+        data.products.forEach(product => {
+            const productHTML = `
+                <div class="row mb-4 d-flex justify-content-between align-items-center">
+                    <div class="col-md-2 col-lg-2 col-xl-2">
+                        <img src="${product.image_url}" class="img-fluid rounded-3" alt="${product.name}">
+                    </div></br>
+                    <div class="col-md-3 col-lg-3 col-xl-3">
+                        <h6 class="mb-0">${product.name} (${product.description})</h6>
+                    </div>
+                    <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                        <button class="btn btn-link px-2"
+                            onclick="this.parentNode.querySelector('input[type=number]').stepDown()">
+                            <i class="fas fa-minus"></i>
+                        </button>
 
-        let html = '';
-        items.forEach(item => {
-            html += `
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="d-flex flex-row align-items-center">
-                                <div>
-                                    <img src="${item.product.image_url || 'https://via.placeholder.com/65'}"
-                                        class="img-fluid rounded-3" alt="${item.product.name}" style="width: 65px;">
-                                </div>
-                                <div class="ms-3">
-                                    <h5>${item.product.name}</h5>
-                                    <p class="small mb-0">${item.product.description.substring(0, 50)}...</p>
-                                </div>
-                            </div>
-                            <div class="d-flex flex-row align-items-center">
-                                <div style="width: 50px;">
-                                    <h5 class="fw-normal mb-0">${item.quantity}</h5>
-                                </div>
-                                <div style="width: 80px;">
-                                    <h5 class="mb-0">$${(item.product.price * item.quantity).toFixed(2)}</h5>
-                                </div>
-                                <a href="#" style="color: #cecece;" onclick="removeItem(${item.id})"><i class="fas fa-trash-alt"></i></a>
-                            </div>
-                        </div>
+                        <input min="1" name="quantity" value="${product.quantity}" type="number"
+                            class="form-control form-control-sm" />
+
+                        <button class="btn btn-link px-2"
+                            onclick="this.parentNode.querySelector('input[type=number]').stepUp()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
+                        <h6 class="mb-0">BYN ${product.price}</h6>
+                    </div>
+                    <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                        <a href="#!" class="text-muted"><i class="fas fa-times"></i></a>
                     </div>
                 </div>
+                <hr class="my-4">
             `;
+            
+            const backToShop = cartItemsContainer.querySelector('.pt-5');
+            backToShop.insertAdjacentHTML('beforebegin', productHTML);
         });
         
-        cartItemsContainer.innerHTML = html;
-    }
-
-    function calculateTotals(items) {
-        const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-        const shipping = 20.00;
-        const total = subtotal + shipping;
+        const itemCountElement = cartItemsContainer.querySelector('.d-flex.justify-content-between.align-items-center.mb-5 h6');
+        itemCountElement.textContent = `${data.products.length} ${data.products.length === 1 ? 'item' : 'items'}`;
         
-        document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
-        document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
+        const subtotal = parseFloat(data.total_price).toFixed(2);
+        const shipping = 5.00;
+        const total = (parseFloat(subtotal) + shipping).toFixed(2);
+        
+        const summaryItemsElement = summaryContainer.querySelector('.d-flex.justify-content-between.mb-4 h5:first-child');
+        summaryItemsElement.textContent = `items ${data.products.length}`;
+        
+        const summaryPriceElement = summaryContainer.querySelector('.d-flex.justify-content-between.mb-4 h5:last-child');
+        summaryPriceElement.textContent = `€ ${subtotal}`;
+        
+        const totalElement = summaryContainer.querySelector('.d-flex.justify-content-between.mb-5 h5:last-child');
+        totalElement.textContent = `€ ${total}`;
     }
 
-    function removeItem(itemId) {
-        fetch(`/cart/items/${itemId}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (response.ok) {
-                fetchCartItems();
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    document.getElementById('checkout-btn').addEventListener('click', function() {
-        alert('Proceeding to checkout!');
-    });
+    loadCartItems();
+});
 </script>
 </body>
 </html>

@@ -9,3 +9,10 @@ class CartResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CartCount(BaseModel):
+    count: int
+    
+    class Config:
+        from_attributes = True

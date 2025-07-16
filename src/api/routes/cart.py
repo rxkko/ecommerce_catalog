@@ -19,3 +19,14 @@ async def get_products_from_cart(
     user: User = Depends(get_current_user)                         
 ):
     return await cart_service.get_products_from_cart(user.id)
+
+@router.get("/count")
+async def get_cart_count(
+    cart_service: CartServiceDep,
+    user: User = Depends(get_current_user)
+):
+    return await cart_service.get_cart_count(user.id)
+
+@router.get("/", include_in_schema=False)
+async def html_get_products(request: Request):
+    return templates.TemplateResponse("cart.html", {"request": request})

@@ -1,8 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
-from src.schemas.cart import CartResponse
 from src.models.cart_item import CartItem
 import logging
 
@@ -25,4 +24,9 @@ class CartRepository:
                 detail="Ошибка при получении корзины"
             )
         
+    async def get_cart_count(self, user_id: int) -> int:
+        result = await self.session.scalar(
+            select(func.count(CartItem.id)).where(CartItem.user_id == user_id)
+        )
+        return result or 0
     

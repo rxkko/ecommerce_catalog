@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from src.repositories.cart_repo import CartRepository
 from src.services.product_service import ProductService
-from src.schemas.cart import CartResponse
+from src.schemas.cart import CartResponse, CartCount
 from src.schemas.product import ProductRead
 import logging
 
@@ -44,7 +44,12 @@ class CartService:
         except Exception as e:
             logger.error(f"Ошибка при получении корзины в сервисах: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Вы не авторизованы))"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
+    async def get_cart_count(self, user_id: int) -> CartCount:
+        try:
+            count = await self.cart_repo.get_cart_count(user_id)
+            return count
+        except HTTPException as e:
+            print(e)

@@ -146,17 +146,18 @@ class ProductRepository:
                 detail="Ошибка при поиске товаров"
             )
 
-    async def get_products_by_category(
+    async def get_products_by_categories(
         self, 
-        category: ProductCategory
+        categories: List[ProductCategory]
     ) -> List[Product]:
         try:
-            query = select(Product).where(Product.product_category == category)
+            query = select(Product).where(Product.product_category.in_(categories))
             result = await self.session.execute(query)
             return result.scalars().all()
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при фильтрации по категории {category}: {str(e)}")
+            logger.error(f"Ошибка при фильтрации по категориям {categories}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка при фильтрации товаров"
             )
+        

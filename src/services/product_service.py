@@ -39,7 +39,7 @@ class ProductService:
         self, 
         limit: int = 10, 
         offset: int = 0
-    ) -> dict:
+    ) -> List[ProductRead]:
         try:
             products, total = await self.product_repo.get_products(limit, offset)
             return {
@@ -106,14 +106,14 @@ class ProductService:
                 detail=f"Ошибка при удалении продукта: {str(e)}"
             )
 
-    async def get_products_by_category(
+    async def get_products_by_categories(
         self, 
-        category: ProductCategory
+        categories: List[ProductCategory]
     ) -> List[ProductRead]:
         try:
-            return await self.product_repo.get_products_by_category(category)
+            return await self.product_repo.get_products_by_categories(categories)
         except Exception as e:
-            logger.error(f"Ошибка фильтрации по категории {category}: {str(e)}")
+            logger.error(f"Ошибка фильтрации по категориям {categories}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка при фильтрации продуктов"

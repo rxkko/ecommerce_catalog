@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.templating import Jinja2Templates
-from typing import Annotated
+from typing import Annotated, List
 
 from src.services.product_service import ProductService
 from src.api.dependencies import get_product_service
@@ -59,13 +59,13 @@ async def delete_product(
     return None
 
 
-@router.get("/category/{category}", summary="Фильтр по категории")
-async def get_product_with_category(
+@router.get("/category/", summary="Фильтр по категориям")
+async def get_products_with_categories(
     request: Request,
-    category: ProductCategory, 
-    product_service: ProductServiceDep
+    categories: List[ProductCategory] = Query(...),
+    product_service: ProductServiceDep = Depends()
 ):
-    products = await product_service.get_products_by_category(category)
+    products = await product_service.get_products_by_categories(categories)
     return templates.TemplateResponse(
         "catalog.html",
         {"request": request, "products": products}
