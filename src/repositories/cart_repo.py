@@ -30,3 +30,5 @@ class CartRepository:
         )
         return result or 0
     
+    async def add_product_to_cart(self, product_id: int, user_id: int):
+        result = await self.session.execute()

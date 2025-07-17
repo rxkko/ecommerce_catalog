@@ -645,7 +645,7 @@
                 if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
                 
                 const data = await response.json();
-                renderProducts(data.products || []);
+                renderProducts(data.items || []);
                 updateCartCount();
                 
             } catch (error) {
@@ -680,7 +680,7 @@
                 if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
                 
                 const data = await response.json();
-                renderProducts(data.products || []);
+                renderProducts(data.items || []);
                 updateCartCount();
                 
                 window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);

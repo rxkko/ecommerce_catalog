@@ -4,7 +4,9 @@ from typing import Annotated, List, Optional
 
 from src.services.product_service import ProductService
 from src.api.dependencies import get_product_service
+from src.dependencies.auth_deps import get_current_user, admin_required
 from src.schemas.product import ProductCreate, ProductRead, ProductUpdate, ProductCategory
+from src.models.user import User
 
 router = APIRouter(prefix="/catalog", tags=["Catalog"])
 ProductServiceDep = Annotated[ProductService, Depends(get_product_service)]
@@ -28,7 +30,7 @@ async def get_product_by_id(
     return await product_service.get_product_by_id(product_id)
 
 
-@router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED, summary="Создать новый товар")
+@router.post("/product/create", response_model=ProductRead, status_code=status.HTTP_201_CREATED, summary="Создать новый товар")
 async def create_product(
     product_data: ProductCreate,
     product_service: ProductServiceDep
@@ -38,8 +40,10 @@ async def create_product(
 @router.post("/{product_id}/add", summary="Добавить товар в корзину")
 async def add_product_to_cart(
     product_id: int,
-    ):
-    pass
+    product_service: ProductServiceDep,  
+    user: User = Depends(get_current_user)
+):
+    return await product_service.add_product_to_cart(product_id, user.id)
 
 @router.put("/{product_id}", response_model=ProductRead, summary="Обновить товар")
 async def update_product(
@@ -58,20 +62,7 @@ async def delete_product(
     await product_service.delete_product(product_id)
     return None
 
-
-# @router.get("/category/", summary="Фильтр по категориям")
-# async def get_products_with_categories(
-#     request: Request,
-#     product_service: ProductServiceDep,
-#     categories: List[ProductCategory] = Query(...)
-# ):
-#     products = await product_service.get_products_by_categories(categories)
-#     return templates.TemplateResponse(
-#         "catalog.html",
-#         {"request": request, "products": products}
-#     )
-
-@router.get("/api/category/", response_model=List[ProductRead])
+@router.get("/api/category/", response_model=List[ProductRead], summary="Фильтр товаров")
 async def get_products_by_categories_api(
     product_service: ProductServiceDep,
     categories: List[ProductCategory] = Query(...),

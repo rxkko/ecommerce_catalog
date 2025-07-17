@@ -17,7 +17,6 @@ def get_product_repository(
 ) -> ProductRepository:
     return ProductRepository(db)
 
-
 def get_product_service(
     product_repo: ProductRepository = Depends(get_product_repository)
 ) -> ProductService:

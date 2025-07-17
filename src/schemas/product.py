@@ -41,3 +41,11 @@ class ProductRead(ProductBase):
     
     class Config:
         from_attributes = True
+
+class AddToCart(BaseModel):
+    user_id: int
+    product_id: int
+    quantity: Optional[str] = 1
+
+    class Config:
+        from_attributes = True

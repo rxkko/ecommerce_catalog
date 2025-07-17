@@ -124,3 +124,6 @@ class ProductService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка во время фильтрации"
             )
+        
+    async def add_product_to_cart(self, product_id: int, user_id: int):
+        return await self.product_repo.add_product_to_cart(product_id, user_id)

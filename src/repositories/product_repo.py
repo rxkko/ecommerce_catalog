@@ -3,6 +3,7 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound, IntegrityError
 from fastapi import HTTPException, status
 from src.models.product import Product
+from src.models.cart_item import CartItem
 from src.schemas.product import ProductBase, ProductUpdate, ProductCategory
 from typing import Optional, List, Tuple
 from decimal import Decimal
@@ -172,4 +173,28 @@ class ProductRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка во время фильтрации товаров"
             )
+
+    async def add_product_to_cart(self, product_id: int, user_id: int):
+        try:
+            cart_item = CartItem(
+            product_id = product_id,
+            user_id = user_id,
+            )
+            self.session.add(cart_item)
+            await self.session.commit()
+            return cart_item
         
+        except IntegrityError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка целостности при добавлении товара в корзину: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ошибка при добавлении товара (возможно, нарушение уникальности)"
+            )
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(f"Ошибка БД при добавлении товара: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при добавлении товара"
+            )
