@@ -62,13 +62,14 @@ async def delete_product(
     await product_service.delete_product(product_id)
     return None
 
-@router.get("/api/category/", response_model=List[ProductRead], summary="Фильтр товаров")
+@router.get("/api/filter/", response_model=List[ProductRead], summary="Фильтр товаров")
 async def get_products_by_categories_api(
     product_service: ProductServiceDep,
     categories: List[ProductCategory] = Query(...),
     min_price: Optional[float] = None,
     max_price: Optional[float] = None
 ):
+    print(categories, min_price, max_price)
     products = await product_service.get_products_by_categories(
         categories,
         min_price=min_price,

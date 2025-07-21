@@ -25,10 +25,40 @@ class CartRepository:
             )
         
     async def get_cart_count(self, user_id: int) -> int:
-        result = await self.session.scalar(
+        try:
+            result = await self.session.scalar(
             select(func.count(CartItem.id)).where(CartItem.user_id == user_id)
-        )
-        return result or 0
+            )
+            return result or 0
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при получении количества товаров в корзине: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при получении количества товаров в корзине"
+            )
     
+    async def delete_product_from_cart(self, product_id: int, user_id: int):
+        try:
+            result = await self.session.execute(
+                select(CartItem).where(
+                    CartItem.product_id == product_id,
+                    CartItem.user_id == user_id
+                )
+            )
+            item = result.scalar_one_or_none()
+            if not item:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Товар не найден в корзине"
+                )
+            await self.session.delete(item)
+            await self.session.commit()
+        except SQLAlchemyError as e:
+            logger.error(f"Ошибка при удалении товара из корзины: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при удалении товара из корзины"
+            )
+
     async def add_product_to_cart(self, product_id: int, user_id: int):
         result = await self.session.execute()

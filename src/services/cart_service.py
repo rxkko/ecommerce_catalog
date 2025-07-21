@@ -23,7 +23,6 @@ class CartService:
             products_db = await self.product_service.get_products_by_ids(product_ids)
             
             products = []
-            total_price = 0.0
 
             for item in cart_items:
                 product = next((p for p in products_db if p.id == item.product_id), None)
@@ -39,17 +38,26 @@ class CartService:
                     image_url=product.image_url,
                     product_category=product.product_category
                 ))
-                total_price += float(product.price) * item.quantity
-            return CartResponse(products=products, total_price=total_price)
+            return CartResponse(products=products)
         except Exception as e:
             logger.error(f"Ошибка при получении корзины в сервисах: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
-    async def get_cart_count(self, user_id: int) -> CartCount:
+    async def get_cart_count(self, user_id: int) -> int:
         try:
             count = await self.cart_repo.get_cart_count(user_id)
             return count
         except HTTPException as e:
             print(e)
+
+    async def delete_product_from_cart(self, product_id: int, user_id: int):
+        try:
+            await self.cart_repo.delete_product_from_cart(product_id, user_id)
+        except HTTPException as e:
+            logger.error(f"Ошибка при удалении товара из корзины: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Ошибка при удалении товара из корзины"
+            )

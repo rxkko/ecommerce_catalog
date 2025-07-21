@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 
 from src.api.dependencies import get_user_service
@@ -10,6 +12,7 @@ from src.dependencies.auth_deps import admin_required, get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+router.mount("/static", StaticFiles(directory="/code/src/frontend/static"), name="static")
 templates = Jinja2Templates(directory="src/frontend/templates")
 
 
@@ -21,7 +24,10 @@ async def login(
 ):
     return await user_service.login(credentials.email, credentials.password, response)
 
-
+@router.get("/auth", response_class=HTMLResponse, summary="Вызов окна авторизации")
+async def html_get_auth(request: Request):
+    return templates.TemplateResponse("auth.html", {"request": request})
+    
 @router.post("/logout", summary="Выход из системы")
 async def logout(response: Response):
     response.delete_cookie("access_token")

@@ -8,6 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
+      - ./src/frontend/static:/code/src/frontend/static
     working_dir: /code
     env_file:
       - .env
