@@ -61,3 +61,9 @@ class CartService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка при удалении товара из корзины"
             )
+        
+    async def increment_cart_item(product_id: int, user_id: int):
+        pass
+
+    async def decrement_cart_item(product_id: int, user_id: int):
+        pass

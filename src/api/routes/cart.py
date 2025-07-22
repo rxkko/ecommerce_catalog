@@ -37,7 +37,7 @@ async def delete_from_cart(
 ):
     return await cart_service.delete_product_from_cart(product_id, user.id)
 
-@router.put("/product/increment", summary="Добавление количества товара в корзине")
+@router.post("/product/increment", summary="Добавление количества товара в корзине")
 async def increment_cart_item(
     product_id: int,
     cart_service: CartServiceDep,
@@ -46,7 +46,7 @@ async def increment_cart_item(
     await cart_service.increment_cart_item(product_id, user.id)
     return {"message": "Количество товара увеличено"}
 
-@router.put("/product/decrement", summary="Уменьшение количества товара в корзине")
+@router.post("/product/decrement", summary="Уменьшение количества товара в корзине")
 async def decrement_cart_item(
     product_id: int,
     cart_service: CartServiceDep,
