@@ -1,20 +1,24 @@
-
 services:
   web:
     container_name: fastapi_catalog
     build: .
-    command: bash -c "./wait-for-it.sh postgres:5432 -- ./wait-for-it.sh redis:6379 -- uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
     volumes:
-      - .:/code
-      - ./src/frontend/static:/code/src/frontend/static
-    working_dir: /code
+      - .:/app
+    working_dir: /app
     env_file:
       - .env
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
@@ -24,6 +28,11 @@ services:
     volumes:
       - redis_data:/data
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   postgres:
     image: postgres:15.3-alpine
@@ -39,6 +48,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   redis_data:

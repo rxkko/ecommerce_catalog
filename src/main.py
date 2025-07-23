@@ -19,6 +19,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/health")
+async def health_check():
+    return {"status": "OK"}
+
 app.include_router(product.router)
 app.include_router(user.router)
 app.include_router(cart.router)

@@ -12,7 +12,6 @@ from src.dependencies.auth_deps import admin_required, get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
-router.mount("/static", StaticFiles(directory="/code/src/frontend/static"), name="static")
 templates = Jinja2Templates(directory="src/frontend/templates")
 
 
