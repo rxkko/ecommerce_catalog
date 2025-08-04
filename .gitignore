@@ -1,0 +1,53 @@
+# Игнорировать системные файлы
+.DS_Store
+Thumbs.db
+
+# Игнорировать файлы редакторов и IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Игнорировать логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Игнорировать зависимости (Node.js, Python и др.)
+node_modules/
+venv/
+# .env
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Игнорировать бинарные файлы и артефакты
+*.exe
+*.dll
+*.so
+*.out
+*.app
+*.jar
+*.class
+
+# Игнорировать пользовательские настройки и секреты
+secrets.ini
+config.json
+*.env.local
+
+# Virtualenv
+venv/
+.env/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# .gitignore
