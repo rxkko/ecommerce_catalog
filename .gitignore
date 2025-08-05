@@ -16,7 +16,8 @@ Thumbs.db
 # Игнорировать зависимости (Node.js, Python и др.)
 node_modules/
 venv/
-# .env
+.env
+.env.pgadmin
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -50,4 +51,4 @@ build/
 dist/
 *.egg-info/
 
-# .gitignore
+.gitignore
